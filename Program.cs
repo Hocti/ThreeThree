@@ -2,7 +2,7 @@
 using System.Threading;
 using System.Windows.Forms;
 
-namespace Q9CS
+namespace TT
 {
     static class Program
     {
@@ -10,7 +10,7 @@ namespace Q9CS
         [STAThread]
         static void Main()
         {
-            const string appName = "Q9CS";
+            const string appName = "TT";
             bool createdNew;
             var mutex = new Mutex(true, appName, out createdNew);
             if (!createdNew)
@@ -22,10 +22,10 @@ namespace Q9CS
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            Form f = new Q9Form();
+            Form f = new TTForm();
             f.TopMost = true;
 
-            InterceptKeys.init(ref f,((Q9Form)f).handleKey);
+            InterceptKeys.init(ref f,((TTForm)f).handleKey);
             //Application.Run(f);
         }
     }

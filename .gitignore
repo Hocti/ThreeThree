@@ -224,3 +224,10 @@ AppPackages/
 #####
 # End of core ignore list, below put you custom 'per project' settings (patterns or path)
 #####
+
+# tt runtime / build script output
+tt_settings.ini
+tq9_settings.ini
+files/user_freq.db
+dist/
+.tools/
