@@ -7,10 +7,11 @@ class InterceptKeys
 {
     private const int WH_KEYBOARD_LL = 13;
     private const int WM_KEYDOWN = 0x0100;
+    private const int WM_KEYUP = 0x0101;
     private static LowLevelKeyboardProc _proc = HookCallback;
     private static IntPtr _hookID = IntPtr.Zero;
 
-    public delegate bool handleKeyDele(int keyCode);
+    public delegate bool handleKeyDele(int keyCode, bool down);
     private static handleKeyDele keyCall;
 
     public static void init(ref Form f, handleKeyDele _keyCall)
@@ -37,17 +38,23 @@ class InterceptKeys
     private static IntPtr HookCallback(
         int nCode, IntPtr wParam, IntPtr lParam)
     {
-        if (nCode >= 0 && wParam == (IntPtr)WM_KEYDOWN)
+        //Debug.WriteLine("press {0} {1} {3} {2} ", nCode, wParam, lParam, Marshal.ReadInt32(lParam));
+        if (nCode >= 0)
         {
             int vkCode = Marshal.ReadInt32(lParam);
-            bool result = keyCall(vkCode);
-
-            //Debug.WriteLine("press {0} {1} ", result, vkCode);
-            if (result)
+            if(wParam == (IntPtr)WM_KEYDOWN)
             {
-                return (IntPtr)1;
+                bool result = keyCall(vkCode, true);
+                if (result)
+                {
+                    return (IntPtr)1;
+                }
             }
-            //Console.WriteLine((Keys)vkCode);
+            else if (wParam == (IntPtr)WM_KEYUP)
+            {
+                keyCall(vkCode, false);
+
+            }
         }
         return CallNextHookEx(_hookID, nCode, wParam, lParam);
     }

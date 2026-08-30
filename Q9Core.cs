@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Data.SQLite;
+using System.Diagnostics;
 using System.Globalization;
 using System.Text;
 /*
@@ -20,7 +21,7 @@ namespace Q9CS
             con.Open();
         }
 
-        private string[] sql2strs(string stm,string splitStr="")
+        private string[] sql2strs(string stm, string splitStr = "")
         {
             SQLiteCommand cmd = new SQLiteCommand(stm, con);
             object result = cmd.ExecuteScalar();
@@ -82,13 +83,30 @@ namespace Q9CS
         }
         */
 
+        public int[] getCode(string word) {
+            string stm = $"SELECT `id` FROM `mapped_table` WHERE INSTR(`characters`,'{word}');";
+            var nums = new List<int>();
+            using (var command = new SQLiteCommand(stm, con))
+            {
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        int num = reader.GetInt32(0);
+                        nums.Add(num);
+                    }
+                }
+            }
+            return nums.ToArray();
+        }
+
         public string[] getHomo(string word)
         {
 
             var words = new List<string>();
             if (word.Length > 1) return words.ToArray();
 
-            string stm = $"SELECT w1.char FROM word_meta w1 INNER JOIN word_meta w2 ON w1.ping = w2.ping WHERE w2.char = '{word}' ORDER BY CASE WHEN w1.ping2 = w2.ping2 THEN 0 ELSE 1 END DESC;";//, w1.freq
+            string stm = $"SELECT w1.char FROM word_meta w1 INNER JOIN word_meta w2 ON w1.ping = w2.ping WHERE w2.char = '{word}' ORDER BY CASE WHEN w1.ping2 = w2.ping2 THEN 0 ELSE 1 END ASC;";//, w1.freq
 
 
             using (var command = new SQLiteCommand(stm, con))

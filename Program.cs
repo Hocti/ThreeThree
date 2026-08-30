@@ -10,7 +10,7 @@ namespace Q9CS
         [STAThread]
         static void Main()
         {
-            const string appName = "TQ9";
+            const string appName = "Q9CS";
             bool createdNew;
             var mutex = new Mutex(true, appName, out createdNew);
             if (!createdNew)
@@ -18,8 +18,6 @@ namespace Q9CS
                 //app is already running! Exiting the application
                 return;
             }
-
-
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
@@ -29,9 +27,6 @@ namespace Q9CS
 
             InterceptKeys.init(ref f,((Q9Form)f).handleKey);
             //Application.Run(f);
-
-
-
         }
     }
 }

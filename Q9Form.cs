@@ -10,6 +10,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.IO;
 using System.Drawing.Text;
+using System.Linq;
 
 namespace Q9CS
 {
@@ -72,6 +73,13 @@ namespace Q9CS
             int i = GetPrivateProfileString(section, key, defaultValue.ToString(), SB, 255, this.filePath);
             return int.TryParse(SB.ToString(), out i) ? i : defaultValue;
         }
+
+        public string ReadStr(string section, string key, string defaultValue)
+        {
+            StringBuilder SB = new StringBuilder(255);
+            int i = GetPrivateProfileString(section, key, defaultValue.ToString(), SB, 255, this.filePath);
+            return SB.ToString();
+        }
     }
 
 
@@ -93,6 +101,7 @@ namespace Q9CS
 
         private IniFile ini = new IniFile("tq9_settings.ini");
         private Dictionary<string, int> Keys = new Dictionary<string, int>();
+        private Dictionary<string, string> KeysStr = new Dictionary<string, string>();
         private Dictionary<string, int> altKeys = new Dictionary<string, int>();
 
         public void Q9Form_FormClosing(object sender, FormClosingEventArgs e)
@@ -259,7 +268,13 @@ namespace Q9CS
             Keys["switch"] = ini.ReadInt("Key", "switch", 121);
             Keys["position"] = ini.ReadInt("Key", "position", 120);
             Keys["size"] = ini.ReadInt("Key", "size", 119);
-            
+
+            KeysStr["switch"] = ini.ReadStr("Key", "switch", "121");
+            KeysStr["position"] = ini.ReadStr("Key", "position", "120");
+            KeysStr["size"] = ini.ReadStr("Key", "size", "119");
+
+
+
             //this.MinimumSize= new Size(120, 160);
             this.FormBorderStyle = FormBorderStyle.Sizable;
             //this.AutoSizeMode = 0;
@@ -270,7 +285,7 @@ namespace Q9CS
             this.Left = Math.Min(screenSize.Width - this.Width, ini.ReadInt("Window", "Left", this.Left));
             this.Top = Math.Min(screenSize.Height - this.Height, ini.ReadInt("Window", "Top", this.Top));
 
-            Debug.WriteLine($"{this.Left},{screenSize.Width},{screenSize.Left},{screenSize.X}");
+            //Debug.WriteLine($"{this.Left},{screenSize.Width},{screenSize.Left},{screenSize.X}");
 
 
             this.FormClosing += Q9Form_FormClosing;
@@ -430,9 +445,11 @@ google查`keycode online`隨便一個結果，都會有查key code的網頁
                 newSize[0] = Clamp(control.ClientSize.Width, 90, 450);
             }
 
+            /*
             Debug.Write(this.Width);
             Debug.Write("_");
             Debug.WriteLine(control.ClientSize.Width);
+            */
 
             //Debug.WriteLine("{0}->{1}->{2}", control.Size.Width, control.ClientSize.Width,control.PreferredSize.Width);
             //Debug.WriteLine("{0}->{1}", lastSize[0], newSize[0]);
@@ -489,10 +506,37 @@ google查`keycode online`隨便一個結果，都會有查key code的網頁
             }
         }
 
-        public bool handleKey(int keyCode)
+        private bool[] downKeys = new bool[256];
+        public bool handleKey(int keyCode,bool down)
         {
+            if (!down)
+            {
+                downKeys[keyCode]=false;
+                return false;
+            }
+            else
+            {
+                downKeys[keyCode] = true;
+            }
+            string keydownStr = "";
+            int downCount = 0;
+            for (int i = 0; i < 256; i++)
+            {
+                if (downKeys[i])
+                {
+                    downCount++;
+                    keydownStr += i+" ";
+                }
+            }
+            keydownStr = keydownStr.TrimEnd().Replace(" ", "+");
+            
+            if (downCount > 1)
+            {
+                Debug.WriteLine(keydownStr, KeysStr["position"]);
+            }
+
             //scroll lock
-            if (keyCode == Keys["switch"])
+            if ((KeysStr["switch"].IndexOf('+')<0 && keyCode == Keys["switch"]) || keydownStr == KeysStr["switch"])
             {
                 active = !active;
                 if (!active)
@@ -517,7 +561,7 @@ google查`keycode online`隨便一個結果，都會有查key code的網頁
                 return false;
             }
 
-            if (keyCode == Keys["position"])
+            if ((KeysStr["position"].IndexOf('+') < 0 && keyCode == Keys["position"]) || keydownStr == KeysStr["position"])
             {
 
                 this.Show();
@@ -530,8 +574,8 @@ google查`keycode online`隨便一個結果，都會有查key code的網頁
                 return false;
             }
 
-            if (keyCode == Keys["size"])
-            {
+            if ((KeysStr["size"].IndexOf('+') < 0 && keyCode == Keys["size"]) || keydownStr == KeysStr["size"])
+                {
                 int newSize = currBoxSize;
                 if (newSize == 40)
                 {
@@ -760,6 +804,7 @@ google查`keycode online`隨便一個結果，都會有查key code的網頁
         private string currCode = "";
 
         private bool homo = false;
+        private bool afterHomo = false;
         private bool openclose = false;
         private string lastWord = "";
 
@@ -817,6 +862,7 @@ google查`keycode online`隨便一個結果，都會有查key code的網頁
             else if (command == q9command.openclose)
             {
                 homo = false;
+                afterHomo = false;
                 openclose = true;
 
                 string opencloseStr = String.Join("",core.keyInput(1));
@@ -874,6 +920,7 @@ google查`keycode online`隨便一個結果，都會有查key code的網頁
         {
             this.selectMode = false;
             homo = false;
+            afterHomo = false;
             openclose = false;
             currCode = "";
 
@@ -976,6 +1023,7 @@ google查`keycode online`隨便一個結果，都會有查key code的網頁
             if (homo)
             {
                 homo = false;
+                afterHomo = true;
                 setStatusPrefix($"同音[{typeWord}]");
                 startSelectWord(core.getHomo(typeWord));
                 return;
@@ -998,6 +1046,7 @@ google查`keycode online`隨便一個結果，都會有查key code的網頁
             {
                 lastWord = "";
             }
+            bool lastafterHomo = afterHomo;
             if (relates!=null && relates.Length > 0)
             {
                 setZeroWords(relates);
@@ -1008,6 +1057,15 @@ google查`keycode online`隨便一個結果，都會有查key code的網頁
                 cancel();
             }
 
+            Debug.WriteLine($"lastafterHomo:{lastafterHomo},{typeWord}");
+            if (lastafterHomo)
+            {
+                afterHomo = false;
+                int[] nums=core.getCode(typeWord);
+                string numsstr = string.Join(",", nums);
+                //Debug.WriteLine(numsstr, nums,nums[0]);
+                setStatusPrefix($"{typeWord}key:{numsstr}");
+            }
         }
 
         //===================================================================================
