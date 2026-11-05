@@ -1014,11 +1014,12 @@ google查`keycode online`隨便一個結果，都會有查key code的網頁
             buttons[i].BackColor = Color.White;
             buttons[i].Text = s;
 
+            int len = Math.Max(1, new System.Globalization.StringInfo(s).LengthInTextElements);
             int fontsize = 0;
             if (!relate)
             {
                 float scale = i==10?0.5f:0.46f;
-                fontsize = (int)((currBoxSize - 6) / Math.Max(1, s.Length) * scale * (i == 0 ? 1.8f : 1));
+                fontsize = (int)((currBoxSize - 6) / len * scale * (i == 0 ? 1.8f : 1));
                 //Debug.WriteLine(s, fontsize, currBoxSize);
                 //Debug.WriteLine($"non relate:{s},{fontsize},{currBoxSize}");//"s, fontsize, currBoxSize);
                 buttons[i].TextAlign = ContentAlignment.MiddleCenter;
@@ -1027,7 +1028,7 @@ google查`keycode online`隨便一個結果，都會有查key code的網頁
             else
             {
                 float scale = i == 10 ? 0.5f : 0.28f;
-                fontsize = (int)((currBoxSize - 6) / Math.Max(1, s.Length) * scale);
+                fontsize = (int)((currBoxSize - 6) / len * scale);
                 if(i>0 && i < 10)
                 {
                     buttons[i].TextAlign = ContentAlignment.TopLeft;
